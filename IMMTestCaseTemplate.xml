@@ -1,0 +1,36 @@
+<action>
+  <name>name</name>
+  <init_para_sec>
+    <addr key="1">val1</addr>
+    <addr key="2">val2</addr>
+    <addr key="3">val3</addr>    
+  </init_para_sec>
+  <case>
+    <para_sec>
+      <addr key="1">val1</addr>
+      <addr key="2">val2</addr>
+      <addr key="3">val3</addr>
+    </para_sec>
+    <command>action</command>
+    <expect>
+      <input>
+	<bit index="0" delay="10">1</bit>
+	<bit index="1" delay="0">1</bit>
+	<bit index="2" delay="100">0</bit>
+      </input>
+      <output>
+	<bit index="0" delay="10">1</bit>
+	<bit index="1" delay="0">1</bit>
+	<bit index="2" delay="1000">0</bit>
+      </output>
+      <da_output>
+	<pressure></pressure>
+	<flow></flow>
+	<back_pressure></back_pressure>
+      </da_output>
+      <alarm>
+	<bit index="0" delay="10">5</bit>
+      </alarm>
+    </expect>
+  </case>
+</action>
