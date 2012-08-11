@@ -1,4 +1,4 @@
 ICHostTestFramework
 ===================
 
-A test framework used to test industrial control system
+A test framework used to test industrial control system.
