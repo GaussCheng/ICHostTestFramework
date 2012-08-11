@@ -12,7 +12,7 @@ if __name__ == '__main__':
     serial_transceiver = ICSerialTransceiver('/dev/ttyS0')
     data_frame = ICIMMTransceiverData()
     sent_frame = ICIMMTransceiverData()
-    sent_frame.function_code = 80
+    sent_frame.function_code = 81
     sent_frame.addr = 2 << 8 | 208
     sent_frame.length = 27
     
@@ -24,10 +24,13 @@ if __name__ == '__main__':
         if len(recv) == 0:
             writed = sent_frame.data_frame_to_data_stream()
             for d in writed:
-                print (d),
+                print (d, end=' ')
             print ("End")
         if not data_frame.data_stream_to_data_frame(recv, len(recv), data_frame, sent_frame):
             f += 1
+            for d in recv:
+                print (d, end=' '),
+            print ("End")
         else: t += 1
         print ("s radio:", t, f, t / (t + f))
         sent_frame.addr = randint(1, 700)

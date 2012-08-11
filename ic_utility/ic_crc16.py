@@ -69,7 +69,7 @@ def crc16(data, size):
     i = 0
 
     for d in data[0 : size]:
-        i = crc_hi ^ ord(d)
+        i = crc_hi ^ d
         crc_hi = crc_lo ^ crcTableHi_[i]
         crc_lo = crcTableLo_[i]
     
