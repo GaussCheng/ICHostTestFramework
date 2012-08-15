@@ -8,11 +8,14 @@ from random import randint
 from ic_communicate.ic_transceiver_data import ICIMMTransceiverData
 from ic_communicate.ic_serial_transceiver import ICSerialTransceiver
 from ic_test_case.ic_built_in_test_case import ICActionTestCase
+import time
+
 
 if __name__ == '__main__':
     action_test_case = ICActionTestCase()
     action_test_case.load(open("IMMTestCaseTemplate.xml", mode='r').read())
-    print(action_test_case.run_case())
+    action_test_case.run_case()
+    print (action_test_case.test_report())
 #    serial_transceiver = ICSerialTransceiver('/dev/ttyS0')
 #    data_frame = ICIMMTransceiverData()
 #    sent_frame = ICIMMTransceiverData()

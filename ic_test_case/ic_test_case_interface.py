@@ -3,12 +3,14 @@ Created on Aug 11, 2012
 
 @author: gausscheng
 '''
+from ic_communicate.ic_serial_transceiver import ICSerialTransceiver
 
 class ICTestCaseInterface(object):
     '''
     test case interface
     '''
 
+    g_serial_transceiver = ICSerialTransceiver("/dev/ttyS0")
 
     def __init__(self):
         '''
@@ -28,4 +30,7 @@ class ICTestCaseInterface(object):
         return 0
     
     def err_descr(self):
+        return ""
+    
+    def test_report(self):
         return ""

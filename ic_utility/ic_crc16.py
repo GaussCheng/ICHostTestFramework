@@ -77,5 +77,5 @@ def crc16(data, size):
 
 def check_crc16(data_stream, size):
     crc_cal = crc16(data_stream, size - 2)
-    crc_recv = (ord(data_stream[size - 2]) << 8) | ord(data_stream[size - 1]);
+    crc_recv = ((data_stream[size - 2]) << 8) | (data_stream[size - 1]);
     return crc_cal == crc_recv;
