@@ -135,96 +135,120 @@ class ICActionTestCase(ICTestCaseInterface):
     def test_report(self):
         return self._test_report_
     
-    def run_case(self):
+    
+    
+    def _test_case_set_paras(self, para_sec, sep, condition):
         self.sent_frame.function_code = ICIMMTransceiverData.FUNCTION_CODE_WRITE
         self.sent_frame.data_buffer = []
         self.sent_frame.data_buffer.append(0)
         self.sent_frame.length = 1
         recv_status = False
-        self._test_report_ = ""
-        self._test_report_ += self.case_name() + ": test start\n"
-        for para in self._init_para_sec_:
+        for para in para_sec:
             self.sent_frame.addr = para.addr
             self.sent_frame.data_buffer[0] = para.val
             recv_status = self.sent_frame.communicate(self.recv_frame, self.g_serial_transceiver)
             if recv_status == False:
-                self.communicate_fail_report("", "init", self.sent_frame, self.recv_frame)
-                self._test_report_ += self.case_name() + ": test end"
+                self.communicate_fail_report(sep, condition, self.sent_frame, self.recv_frame)
                 return False
+        
+    def _test_case_init_para_(self, para_sec):
+        return self._test_case_set_paras(para_sec, "", "init")
+    
+    def run_case(self):
+        self._test_report_ = ""
+        self._test_report_ += self.case_name() + ": test start\n"
+        if not self._test_case_init_para_(self._init_para_sec_):
+            self._test_report_ += self.case_name() + ": test end"
+            return False
         
         case_para_sec = []
         for case in self._cases_:
             self._test_report_ += "    " + case.name + ": test start\n"
             case_para_sec = case.get_para_sec()
-            for para in case_para_sec:          #Send the parameters of case to host
-                self.sent_frame.addr = para.addr
+            if not self._test_case_set_paras(case_para_sec, "    ", "set para"):
+                self._test_report_ +=  "    " + case.name + ": test end"
+                continue
+            
+            self.sent_frame.function_code = ICIMMTransceiverData.FUNCTION_CODE_WRITE
+            self.sent_frame.addr = self.ACTION_COMMAND_ADDR
+            self.sent_frame.data_buffer[0] = case.command
+            recv_status = self.sent_frame.communicate(self.recv_frame, self.g_serial_transceiver)
+            if recv_status == False:
+                self.communicate_fail_report("    ", "set command", self.sent_frame, self.recv_frame)
+                continue
+            
+            timer = ICTimer()
+            timer.start()
+            timer_eplased = 0
+            case_runtime_vars = case.get_runtime_variables()[:]
+            case_runtime_input_bits = case.runtime_input_bits[:]
+            set_input_bits = 0
+            case_expect_output_bits = self._expect_output_bits_[:]
+            case_expect_alarm_bits = self._expect_alarm_bits_[:]
+            while(True):
+                #set input
+                is_input_bits_changed = False
+                for input_bit in case_runtime_input_bits[:]:
+                    timer_eplased = timer.elapsed()
+                    if timer_eplased >= input_bit.delay:
+                        is_input_bits_changed = True
+                        if input_bit.is_on:
+                            set_input_bits |= 1 << input_bit.index
+                        else: set_input_bits &= 1 << input_bit.index
+                        case_runtime_input_bits.remove(input_bit)
+                
+                self.sent_frame.function_code = ICIMMTransceiverData.FUNCTION_CODE_DEBUG_WRITE
                 self.sent_frame.length = 1
-                self.sent_frame.data_buffer[0] = para.val
-                recv_status = self.sent_frame.communicate(self.recv_frame, self.g_serial_transceiver)
-                if recv_status == False:
-                    self.communicate_fail_report("    ", "set para", self.sent_frame, self.recv_frame)
-                    self._test_report_ +=  "    " + case.name + ": test end"
-                    break
-            else:
-                self.sent_frame.addr = self.ACTION_COMMAND_ADDR
-                self.sent_frame.data_buffer[0] = case.command
-                if recv_status == False:
-                    self.communicate_fail_report("    ", "set command", self.sent_frame, self.recv_frame)
-                    continue
-                timer = ICTimer()
-                timer.start()
-                timer_eplased = 0
-                case_runtime_vars = case.get_runtime_variables()[:]
-                case_runtime_input_bits = case.runtime_input_bits[:]
-                set_input_bits = 0
-                case_expect_output_bits = self._expect_output_bits_[:]
-                case_expect_alarm_bits = self._expect_alarm_bits_[:]
-                while(True):
-                    #set input
-                    is_input_bits_changed = False
-                    for input_bit in case_runtime_input_bits[:]:
-                        timer_eplased = timer.elapsed()
-                        if timer_eplased >= input_bit.delay:
-                            is_input_bits_changed = True
-                            if input_bit.is_on:
-                                set_input_bits |= 1 << input_bit.index
-                            else: set_input_bits &= 1 << input_bit.index
-                            case_runtime_input_bits.remove(input_bit)
+                if is_input_bits_changed:
+                    self.sent_frame.addr = case.runtime_input_addr
+                    self.sent_frame.data_buffer[0] = set_input_bits
+                    recv_status = self.sent_frame.communicate(self.recv_frame, self.g_serial_transceiver)
+                    if recv_status == False:
+                        self.communicate_fail_report("    ", "set runtime input", self.sent_frame, self.recv_frame)
+                        break
                     
-                    self.sent_frame.function_code = ICIMMTransceiverData.FUNCTION_CODE_DEBUG_WRITE
-                    self.sent_frame.length = 1
-                    if is_input_bits_changed:
-                        self.sent_frame.addr = case.runtime_input_addr
-                        self.sent_frame.data_buffer[0] = set_input_bits
+                #set runtime variable
+                for rt_var in case_runtime_vars[:]:
+                    timer_eplased = timer.elapsed()
+                    if timer_eplased >= rt_var.delay:
+                        self.sent_frame.addr = rt_var.addr
+                        self.sent_frame.data_buffer[0] = rt_var.val
                         recv_status = self.sent_frame.communicate(self.recv_frame, self.g_serial_transceiver)
                         if recv_status == False:
-                            self.communicate_fail_report("    ", "set runtime input", self.sent_frame, self.recv_frame)
+                            self.communicate_fail_report("    ", "set runtime variables", self.sent_frame, self.recv_frame)
                             break
-                    
-                    #set runtime variable
-                    for rt_var in case_runtime_vars[:]:
-                        timer_eplased = timer.elapsed()
-                        if timer_eplased >= rt_var.delay:
-                            self.sent_frame.addr = rt_var.addr
-                            self.sent_frame.data_buffer[0] = rt_var.val
-                            recv_status = self.sent_frame.communicate(self.recv_frame, self.g_serial_transceiver)
-                            if recv_status == False:
-                                self.communicate_fail_report("    ", "set runtime variables", self.sent_frame, self.recv_frame)
-                                break
-                            case_runtime_vars.remove(rt_var)
-                    
-                    #check expect
-                    does_need_check_output = False
-                    for ep_out in case_expect_output_bits:
-                        timer_eplased = timer.elapsed()
+                        case_runtime_vars.remove(rt_var)
+                
+                #check expect
+                does_need_check_output = False
+                for ep_out in case_expect_output_bits:
+                    timer_eplased = timer.elapsed()
+                    if timer_eplased >= ep_out.delay:
+                        does_need_check_output = True
+                self.sent_frame.function_code = ICIMMTransceiverData.FUNCTION_CODE_READ
+                if does_need_check_output:
+                    self.sent_frame.addr = ICIMMTransceiverData.READ_OUTPUT_ADDR
+                    self.sent_frame.length = 2
+                    recv_status = self.sent_frame.communicate(self.recv_frame, self.g_serial_transceiver)
+                    if recv_status == False:
+                        self.communicate_fail_report("    ", "read host status", self.sent_frame, self.recv_frame)
+                        break
+                    host_output = self.recv_frame.data_buffer[1] << 16 | self.recv_frame.data_buffer[0]
+                    for ep_out in case_expect_output_bits[:]:
                         if timer_eplased >= ep_out.delay:
-                            does_need_check_output = True
-                    self.sent_frame.function_code = ICIMMTransceiverData.FUNCTION_CODE_READ
-                    if does_need_check_output:
-                        self.sent_frame.addr = ICIMMTransceiverData.READ_OUTPUT_ADDR
-                        self.sent_frame.length = 2
+                            if ((host_output >> ep_out.index) & 0x01) != ep_out.is_on:
+                                self.expect_output_report("    ", ep_out)
+                                case_expect_output_bits.remove(ep_out)
+                
+                does_need_check_alarm = False
+                for ep_alarm in case_expect_alarm_bits:
+                    timer_eplased = timer.elapsed()
+                    if timer_eplased >= ep_alarm.delay:
+                        does_need_check_alarm = True
+#                    if does_need_check_alarm:
+#                        self.sent_frame.addr =
                         
-                    #check if we should stop
+                #check if we should stop
                     
                  
                 
@@ -395,5 +419,8 @@ class ICActionTestCase(ICTestCaseInterface):
         self._err_code_ = self.COMMUNICATE_FAIL
         self._test_report_ += sep + "Communicate fail when " + condition + "!\n"
         self._test_report_ += sep + "    sent:" + sent_frame.tostring(ICIMMTransceiverData.DECIMAL_FORMAT) + " \n"
-        self._test_report_ += sep + "    recv:" + recv_frame.tostring(ICIMMTransceiverData.DECIMAL_FORMAT) + " \n"  
+        self._test_report_ += sep + "    recv:" + recv_frame.tostring(ICIMMTransceiverData.DECIMAL_FORMAT) + " \n"
+    
+    def expect_output_report(self, sep, ep_output):
+        self._test_report_ += sep + "Output bit:" + str(ep_output.index) + "Expect:" + str(ep_output.is_on) + " But Actually: Not " + str(ep_output.is_on) + "\n"  
             

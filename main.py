@@ -4,11 +4,7 @@ Created on Aug 9, 2012
 @author: gausscheng
 '''
 
-from random import randint
-from ic_communicate.ic_transceiver_data import ICIMMTransceiverData
-from ic_communicate.ic_serial_transceiver import ICSerialTransceiver
 from ic_test_case.ic_built_in_test_case import ICActionTestCase
-import time
 
 
 if __name__ == '__main__':
