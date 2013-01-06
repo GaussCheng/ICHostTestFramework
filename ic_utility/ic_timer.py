@@ -3,7 +3,7 @@ Created on Aug 14, 2012
 
 @author: gausscheng
 '''
-from datetime import time, datetime
+from datetime import datetime
 
 
 class ICTimer(object):

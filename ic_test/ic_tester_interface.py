@@ -5,7 +5,7 @@ Created on Aug 11, 2012
 '''
 from ic_communicate.ic_serial_transceiver import ICSerialTransceiver
 
-class ICTestCaseInterface(object):
+class ICTesterInterface(object):
     '''
     test case interface
     '''
