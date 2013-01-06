@@ -10,56 +10,55 @@ action:
       
   cases:
     - case:
-      name: 测试动作
-      para_sec:
-          1: 1
-          2: 2
-          3: 3
-      command: 5
-      runtime_status:
-        input_bits:
-          - bit:
-              index: 0
-              delay: 10
-              value: 1
-          - bit:
-              index: 1
-              delay: 100
-              value: 1
-          - bit:
-              index: 2
-              delay: 10
-              value: 0
-                          
-        status_variables:
-          - variable:
-              addr: 100
-              delay: 100
-              value: 200
-                
-      expect:
-        output_bits:
-          - bit:
-              index: 0
-              delay: 10
-              value: 1
-          - bit:
-              index: 1
-              delay: 100
-              value: 1
-          - bit:
-              index: 2
-              delay: 10
-              value: 0
-                    
-        da_outputs:
-          - da_output:
-              pressure: 0
-              flow: 0
-              back_pressure: 0
-      
-        alarms:
-          - bit:
-              index: 0
-              delay: 50
-              value: 1
+        name: 测试动作
+        para_sec:
+            1: 1
+            2: 2
+            3: 3
+        command: 5
+        runtime_status:
+          input_bits:
+            - bit:
+                index: 0
+                delay: 10
+                value: 1
+            - bit:
+                index: 1
+                delay: 100
+                value: 1
+            - bit:
+                index: 2
+                delay: 10
+                value: 0
+                            
+          status_variables:
+            - variable:
+                addr: 100
+                delay: 100
+                value: 200
+                  
+        expected:
+          output_bits:
+            - bit:
+                index: 0
+                delay: 10
+                value: 1
+            - bit:
+                index: 1
+                delay: 100
+                value: 1
+            - bit:
+                index: 2
+                delay: 10
+                value: 0
+                      
+          da_output:
+            pressure: 10
+            flow: 20
+            back_pressure: 30
+        
+          alarms:
+            - bit:
+                index: 0
+                delay: 50
+                value: 1
