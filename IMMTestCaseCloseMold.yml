@@ -10,6 +10,7 @@ action:
       
   cases:
     - case:
+        id: 1
         name: 测试动作
         para_sec:
             1: 1

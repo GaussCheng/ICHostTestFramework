@@ -650,6 +650,24 @@ class ICActionTester(ICTesterInterface):
             if self.ACTION_CASES_TAG in action_hash:
                 self.cases = [ICActionTestCase(x)
                               for x in action_hash[self.ACTION_CASES_TAG]]
+                
+    def load(self, str_content):
+        return self.get_value_from_hash(yaml.load(str_content))
+
+    def case_name(self):
+        return self.name
+
+    def run_case(self):
+        return self.case_name() + "test fail!"
+
+    def err_code(self):
+        return 0
+
+    def err_descr(self):
+        return ""
+
+    def test_report(self):
+        return ""
 
 
 if __name__ == '__main__':

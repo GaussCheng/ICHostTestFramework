@@ -31,6 +31,7 @@ class ICTesterInterface(YamlType):
         '''
         Constructor
         '''
+        pass
 
     def load(self, str_content):
         return False
